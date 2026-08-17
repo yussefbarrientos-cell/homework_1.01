@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Presidential Fact Evaluator | Washington, Adams & Jefferson</title>
+    <style>
+        :root {
+            --flag-red: #B22234;
+            --flag-blue: #002868;
+            --flag-white: #FFFFFF;
+            --gold-accent: #FFD700;
+            --light-bg: #F4F6F9;
+            --card-shadow: 0 8px 20px rgba(0,0,0,0.12);
+            --correct-green: #27AE60;
+            --incorrect-red: #C0392B;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--light-bg);
+            color: #333;
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Top Flag Banner */
+        .header-stripe {
+            height: 8px;
+            background: linear-gradient(to right, var(--flag-red) 50%, var(--flag-white) 50%);
+            background-size: 40px 100%;
+        }
+
+        header {
+            background-color: var(--flag-blue);
+            color: var(--flag-white);
+            padding: 2rem 1rem;
+            text-align: center;
+            border-bottom: 5px solid var(--flag-red);
+            position: relative;
+        }
+
+        header h1 {
+            font-size: 2rem;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+        }
+
+        header p {
+            font-size: 1.05rem;
+            color: #d1dcf0;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            flex: 1;
+            width: 100%;
+        }
+
+        .card {
+            background: var(--flag-white);
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
+            padding: 2rem;
+            border-top: 4px solid var(--flag-blue);
+            margin-bottom: 2rem;
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            margin-bottom: 1.5rem;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--flag-blue);
+            margin-bottom: 0.5rem;
+        }
+
+        .progress-bar {
+            height: 12px;
+            background-color: #e0e0e0;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--flag-blue), var(--flag-red));
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        /* Question Styles */
+        .question-number {
+            color: var(--flag-red);
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+            margin-bottom: 0.5rem;
+        }
+
+        .question-text {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 1.5rem;
+        }
+
+        .options-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+        }
+
+        .option-btn {
+            background: #f8f9fa;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 1rem 1.2rem;
+            text-align: left;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+        }
+
+        .option-btn:hover:not(:disabled) {
+            border-color: var(--flag-blue);
+            background-color: #f0f4f9;
+        }
+
+        .option-btn.selected {
+            border-color: var(--flag-blue);
+            background-color: #e6ecf5;
+            font-weight: 600;
+        }
+
+        .option-btn.correct {
+            border-color: var(--correct-green);
+            background-color: #e8f8f0;
+            color: #1e7e34;
+            font-weight: 600;
+        }
+
+        .option-btn.incorrect {
+            border-color: var(--incorrect-red);
+            background-color: #fdeaea;
+            color: #a94442;
+        }
+
+        .option-prefix {
+            display: inline-block;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: #e2e8f0;
+            text-align: center;
+            line-height: 28px;
+            margin-right: 12px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        /* Controls */
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 2rem;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            border: none;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .btn-primary {
+            background-color: var(--flag-blue);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #001f52;
+        }
+
+        .btn-primary:disabled {
+            background-color: #a0aec0;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background-color: #e2e8f0;
+            color: #4a5568;
+        }
+
+        .btn-secondary:hover {
+            background-color: #cbd5e0;
+        }
+
+        /* Results Screen */
+        .results-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .score-badge {
+            font-size: 3rem;
+            font-weight: 800;
+            color: var(--flag-blue);
+            margin: 1rem 0;
+        }
+
+        .result-item {
+            border-bottom: 1px solid #e2e8f0;
+            padding: 1rem 0;
+        }
+
+        .result-item:last-child {
+            border-bottom: none;
+        }
+
+        .result-question {
+            font-weight: 600;
+            margin-bottom: 0.3rem;
+        }
+
+        .result-answer {
+            font-size: 0.95rem;
+        }
+
+        .text-correct {
+            color: var(--correct-green);
+            font-weight: 600;
+        }
+
+        .text-incorrect {
+            color: var(--incorrect-red);
+            font-weight: 600;
+        }
+
+        .explanation {
+            font-size: 0.88rem;
+            color: #666;
+            margin-top: 0.3rem;
+            background: #f8f9fa;
+            padding: 0.5rem;
+            border-left: 3px solid var(--flag-blue);
+            border-radius: 0 4px 4px 0;
+        }
+
+        footer {
+            text-align: center;
+            padding: 1.5rem;
+            font-size: 0.85rem;
+            color: #666;
+            background: var(--flag-white);
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .stars-decoration {
+            color: var(--gold-accent);
+            letter-spacing: 5px;
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .card {
+                padding: 1.25rem;
+            }
+            .question-text {
+                font-size: 1.05rem;
+            }
+            .option-btn {
+                padding: 0.8rem;
+                font-size: 0.95rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header-stripe"></div>
+    <header>
+        <div class="stars-decoration">★ ★ ★ ★ ★</div>
+        <h1>Presidential History Evaluator</h1>
+        <p>Distinguishing Facts: Washington, Adams & Jefferson</p>
+    </header>
+
+    <div class="container">
+        <!-- Quiz Card -->
+        <div id="quiz-card" class="card">
+            <div class="progress-container">
+                <div class="progress-header">
+                    <span>Progress</span>
+                    <span id="progress-text">Question 1 of 20</span>
+                </div>
+                <div class="progress-bar">
+                    <div id="progress-fill" class="progress-fill"></div>
+                </div>
+            </div>
+
+            <div id="question-container">
+                <div id="question-number" class="question-number">Question 1</div>
+                <div id="question-text" class="question-text">Loading question...</div>
+                <div id="options-list" class="options-list"></div>
+            </div>
+
+            <div class="controls">
+                <button id="prev-btn" class="btn btn-secondary" onclick="prevQuestion()" disabled>Previous</button>
+                <button id="next-btn" class="btn btn-primary" onclick="nextQuestion()" disabled>Next Question</button>
+            </div>
+        </div>
+
+        <!-- Results Card (Hidden by Default) -->
+        <div id="results-card" class="card" style="display: none;">
+            <div class="results-header">
+                <div class="stars-decoration">★ ★ ★ ★ ★</div>
+                <h2>Evaluation Complete!</h2>
+                <div id="score-badge" class="score-badge">0 / 20</div>
+                <p id="score-message">Here is a breakdown of your students' performance:</p>
+            </div>
+
+            <div id="results-breakdown"></div>
+
+            <div class="controls" style="justify-content: center; margin-top: 2rem;">
+                <button class="btn btn-primary" onclick="restartQuiz()">Restart Evaluation</button>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>Designed for Classroom Evaluation & GitHub Pages Hosting</p>
+    </footer>
+
+    <script>
+        const questions = [
+            {
+                question: "Which president was the only Founding Father president to free all of the enslaved people he held in bondage through his will?",
+                options: ["George Washington", "John Adams", "Thomas Jefferson", "James Madison"],
+                correct: 0,
+                explanation: "George Washington was a slave owner for 56 years, but he was the only Founding Father president to free all of the enslaved people he held in bondage upon his and Martha's passing."
+            },
+            {
+                question: "Who served as the first United States Minister to Great Britain?",
+                options: ["Thomas Jefferson", "John Adams", "George Washington", "Benjamin Franklin"],
+                correct: 1,
+                explanation: "From 1781 to 1788, John Adams served in various diplomatic posts, including as the first U.S. Minister to Great Britain."
+            },
+            {
+                question: "Which president acquired 828,000 square miles of land from France for $15 million in the deal known as the Louisiana Purchase?",
+                options: ["George Washington", "John Adams", "Thomas Jefferson", "Alexander Hamilton"],
+                correct: 2,
+                explanation: "Thomas Jefferson acquired the Louisiana Purchase from France in 1803, doubling the size of the United States."
+            },
+            {
+                question: "Which president was dubbed 'His Rotundity' by senators while serving as Vice President and President of the Senate?",
+                options: ["George Washington", "Thomas Jefferson", "John Adams", "Aaron Burr"],
+                correct: 2,
+                explanation: "During his 8 years as Vice President under Washington, John Adams' contributions were shunned by senators who dubbed him 'His Rotundity.'"
+            },
+            {
+                question: "At seventeen years old, George Washington used family connections to secure an appointment to which official position?",
+                options: ["Major in the Virginia Regiment", "Surveyor for Culpeper County", "Member of the House of Burgesses", "Aide-de-camp"],
+                correct: 1,
+                explanation: "At age 17, Washington became the surveyor for Culpeper County, which instilled in him a belief in the importance of westward expansion."
+            },
+            {
+                question: "Who was the primary author of the Declaration of Independence in 1776?",
+                options: ["John Adams", "George Washington", "Thomas Jefferson", "Benjamin Franklin"],
+                correct: 2,
+                explanation: "Thomas Jefferson completed one of his greatest achievements in 1776 as the primary author of the Declaration of Independence."
+            },
+            {
+                question: "Which president authored the Massachusetts state constitution, which remains the longest running state constitution in the nation?",
+                options: ["John Adams", "Thomas Jefferson", "George Washington", "Alexander Hamilton"],
+                correct: 0,
+                explanation: "John Adams authored the Massachusetts state constitution during a brief visit home in 1779."
+            },
+            {
+                question: "Early in his military career, George Washington was forced to surrender at which fort prior to resigning his commission?",
+                options: ["Fort Monongahela", "Fort Necessity", "Fort Pitt", "Fort Moultrie"],
+                correct: 1,
+                explanation: "In 1754, Washington's mission to enforce Virginia's claim in the Ohio Valley ended in a humiliating surrender at Fort Necessity."
+            },
+            {
+                question: "Which president authored the 1785 treatise titled 'Notes on the State of Virginia'?",
+                options: ["George Washington", "John Adams", "Thomas Jefferson", "James Madison"],
+                correct: 2,
+                explanation: "Thomas Jefferson published 'Notes on the State of Virginia' in 1785, covering its history, geography, culture, and his views on slavery."
+            },
+            {
+                question: "Unlike the Virginian presidents before and after him, which president did NOT own enslaved people?",
+                options: ["George Washington", "John Adams", "Thomas Jefferson", "Robert Dinwiddie"],
+                correct: 1,
+                explanation: "Unlike Washington and Jefferson, John Adams did not own enslaved people, relying instead on hired white and free African-American workers."
+            },
+            {
+                question: "Which president established the precedent of stepping down after two terms in office, which stood until 1940 and was later codified by the 22nd Amendment?",
+                options: ["John Adams", "Thomas Jefferson", "George Washington", "Franklin D. Roosevelt"],
+                correct: 2,
+                explanation: "George Washington voluntarily retired after two terms, creating a constitutional precedent followed by successive presidents for generations."
+            },
+            {
+                question: "Who served as Secretary of State under President George Washington before becoming Vice President under John Adams?",
+                options: ["Thomas Jefferson", "Alexander Hamilton", "Aaron Burr", "John Jay"],
+                correct: 0,
+                explanation: "Thomas Jefferson accepted Washington's invitation to serve as Secretary of State in 1789, before becoming Adams' Vice President in 1796."
+            },
+            {
+                question: "Which diplomatic agreement signed in 1800 under John Adams ended the Quasi-War with France and re-established peaceful trade?",
+                options: ["Treaty of Paris", "Treaty of Mortefontaine", "Alien and Sedition Acts", "Jay Treaty"],
+                correct: 1,
+                explanation: "The Treaty of Mortefontaine (1800) successfully ended the Quasi-War with France and secured peaceful trade relations."
+            },
+            {
+                question: "Whom did George Washington marry on January 6, 1758, acquiring significant wealth and a life partner?",
+                options: ["Abigail Smith", "Jane Randolph", "Martha Dandridge Custis", "Sally Hemings"],
+                correct: 2,
+                explanation: "Washington married Martha Dandridge Custis, a wealthy widow, gaining significant plantation property and wealth."
+            },
+            {
+                question: "What were the famous last words reported from John Adams before his death on July 4, 1826?",
+                options: ["'I leave America free.'", "'Thomas Jefferson survives.'", "'The Republic is safe.'", "'Give me liberty or death.'"],
+                correct: 1,
+                explanation: "On July 4, 1826, Adams passed away with the last words 'Thomas Jefferson survives,' unaware that Jefferson had died a few hours earlier."
+            },
+            {
+                question: "Which president owned over 600 enslaved individuals throughout his lifetime—the most of any American president?",
+                options: ["George Washington", "Thomas Jefferson", "John Adams", "Andrew Jackson"],
+                correct: 1,
+                explanation: "Over the course of his lifetime, Thomas Jefferson owned over 600 enslaved people at Monticello and his other properties."
+            },
+            {
+                question: "In October 1770, John Adams gained widespread fame in his legal career for defending whom?",
+                options: ["Enslaved laborers seeking freedom", "British soldiers charged in the Boston Massacre", "Virginia planters in land disputes", "Colonial tax protesters"],
+                correct: 1,
+                explanation: "Adams famously took on the defense of the British soldiers charged in the Boston Massacre in October 1770."
+            },
+            {
+                question: "Which president personally led executive action to subdue the Whiskey Rebellion in 1794?",
+                options: ["Thomas Jefferson", "John Adams", "George Washington", "Alexander Hamilton"],
+                correct: 2,
+                explanation: "George Washington expanded executive power by subduing the Whiskey Rebellion in Pennsylvania in 1794."
+            },
+            {
+                question: "Which president brought enslaved individuals James and Sally Hemings with him when serving as U.S. Minister to France?",
+                options: ["George Washington", "John Adams", "Thomas Jefferson", "Benjamin Franklin"],
+                correct: 2,
+                explanation: "Thomas Jefferson brought James and Sally Hemings with him to Paris while serving as Minister to France."
+            },
+            {
+                question: "On what exact historic date did both John Adams and Thomas Jefferson pass away?",
+                options: ["December 14, 1799", "April 16, 1789", "July 4, 1826", "March 4, 1801"],
+                correct: 2,
+                explanation: "Both John Adams and Thomas Jefferson died on July 4, 1826—exactly 50 years to the day after the adoption of the Declaration of Independence."
+            }
+        ];
+
+        let currentQuestion = 0;
+        let userAnswers = new Array(questions.length).fill(null);
+
+        function initQuiz() {
+            renderQuestion();
+        }
+
+        function renderQuestion() {
+            const q = questions[currentQuestion];
+            document.getElementById('question-number').innerText = `Question ${currentQuestion + 1} of ${questions.length}`;
+            document.getElementById('question-text').innerText = q.question;
+            
+            // Progress Bar
+            const progressPct = ((currentQuestion + 1) / questions.length) * 100;
+            document.getElementById('progress-fill').style.width = `${progressPct}%`;
+            document.getElementById('progress-text').innerText = `Question ${currentQuestion + 1} of ${questions.length}`;
+
+            // Options
+            const optionsList = document.getElementById('options-list');
+            optionsList.innerHTML = '';
+
+            const prefixes = ['A', 'B', 'C', 'D'];
+            q.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                if (userAnswers[currentQuestion] === idx) {
+                    btn.classList.add('selected');
+                }
+                
+                btn.innerHTML = `<span class="option-prefix">${prefixes[idx]}</span> <span>${opt}</span>`;
+                btn.onclick = () => selectOption(idx);
+                optionsList.appendChild(btn);
+            });
+
+            // Buttons state
+            document.getElementById('prev-btn').disabled = currentQuestion === 0;
+            const nextBtn = document.getElementById('next-btn');
+            
+            if (currentQuestion === questions.length - 1) {
+                nextBtn.innerText = "Submit Evaluation";
+            } else {
+                nextBtn.innerText = "Next Question";
+            }
+            
+            nextBtn.disabled = userAnswers[currentQuestion] === null;
+        }
+
+        function selectOption(index) {
+            userAnswers[currentQuestion] = index;
+            renderQuestion();
+        }
+
+        function nextQuestion() {
+            if (currentQuestion < questions.length - 1) {
+                currentQuestion++;
+                renderQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        function prevQuestion() {
+            if (currentQuestion > 0) {
+                currentQuestion--;
+                renderQuestion();
+            }
+        }
+
+        function showResults() {
+            document.getElementById('quiz-card').style.display = 'none';
+            document.getElementById('results-card').style.display = 'block';
+
+            let score = 0;
+            const breakdown = document.getElementById('results-breakdown');
+            breakdown.innerHTML = '';
+
+            questions.forEach((q, idx) => {
+                const isCorrect = userAnswers[idx] === q.correct;
+                if (isCorrect) score++;
+
+                const item = document.createElement('div');
+                item.className = 'result-item';
+                
+                item.innerHTML = `
+                    <div class="result-question">${idx + 1}. ${q.question}</div>
+                    <div class="result-answer">
+                        Your answer: <span class="${isCorrect ? 'text-correct' : 'text-incorrect'}">${q.options[userAnswers[idx]] || 'None'}</span>
+                        ${!isCorrect ? `| Correct answer: <span class="text-correct">${q.options[q.correct]}</span>` : ''}
+                    </div>
+                    <div class="explanation"><strong>Historical Context:</strong> ${q.explanation}</div>
+                `;
+                breakdown.appendChild(item);
+            });
+
+            document.getElementById('score-badge').innerText = `${score} / ${questions.length}`;
+            const pct = (score / questions.length) * 100;
+            
+            let message = "";
+            if (pct >= 90) message = "Outstanding! Exceptional mastery of presidential historical facts.";
+            else if (pct >= 75) message = "Great job! Strong ability to distinguish key historical details.";
+            else if (pct >= 60) message = "Good effort! A quick review of the biography facts will sharpen understanding.";
+            else message = "Consider reviewing the biography text again to better differentiate between these three leaders.";
+
+            document.getElementById('score-message').innerText = message;
+        }
+
+        function restartQuiz() {
+            currentQuestion = 0;
+            userAnswers = new Array(questions.length).fill(null);
+            document.getElementById('results-card').style.display = 'none';
+            document.getElementById('quiz-card').style.display = 'block';
+            renderQuestion();
+        }
+
+        // Initialize on load
+        window.onload = initQuiz;
+    </script>
+</body>
+</html>
